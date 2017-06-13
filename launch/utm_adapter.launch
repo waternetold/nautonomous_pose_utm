@@ -1,0 +1,7 @@
+<launch>
+
+	<node name="utm_adapter" pkg="nautonomous_gps_adapter" type="utm_adapter.py"  output="screen" >
+
+	</node>
+
+</launch>
