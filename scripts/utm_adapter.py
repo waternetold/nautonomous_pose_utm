@@ -3,12 +3,20 @@
 import rospy
 import utm
 
-from sensor_msgs.msg import NavSatFix
+from sensor_msgs.msg import NavSatFix, NavSatStatus
 from geometry_msgs.msg import Point
 
 utm_publisher = 0
 
 def gpsCallback(data):
+    if data.status.status == NavSatStatus.STATUS_NO_FIX:
+        print "No fix."
+        return
+
+    if data.header.stamp == rospy.Time(0):
+        print "Time 0"
+        return
+    
     latitude = data.latitude
     longitude = data.longitude
 
