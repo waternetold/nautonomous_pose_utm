@@ -5,7 +5,7 @@ import utm
 
 from sensor_msgs.msg import NavSatFix, NavSatStatus
 from geometry_msgs.msg import Point, PointStamped
-from nautonomous_gps_adapter.msg import PointStampedWithCovariance
+from nautonomous_pose_msgs.msg import PointWithCovarianceStamped
 
 utm_publisher_fix = None
 utm_publisher_point = None
@@ -29,15 +29,10 @@ def gpsCallback(data):
     utm_publisher_point.publish(data.header, point)
 
 if __name__ == '__main__':
-     # In ROS, nodes are uniquely named. If two nodes with the same
-    # node are launched, the previous one is kicked off. The
-    # anonymous=True flag means that rospy will choose a unique
-    # name for our 'listener' node so that multiple listeners can
-    # run simultaneously.
     rospy.init_node('utm_adapter', anonymous=True)
 
-    utm_publisher_fix = rospy.Publisher('/utm/fix', PointStampedWithCovariance, queue_size=10)
-    utm_publisher_point = rospy.Publisher('/utm/point', PointStamped, queue_size=10)
+    utm_publisher_fix = rospy.Publisher('/utm/fix', PointWithCovarianceStamped, queue_size=10)
+    utm_publisher_point = rospy.Publisher('point', PointStamped, queue_size=10)
 
     rospy.Subscriber("/gps/fix", NavSatFix, gpsCallback)
 
