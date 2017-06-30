@@ -29,12 +29,12 @@ def gpsCallback(data):
     utm_publisher_point.publish(data.header, point)
 
 if __name__ == '__main__':
-    rospy.init_node('utm_adapter', anonymous=True)
+    rospy.init_node('utm_adapter_node', anonymous=True)
 
-    utm_publisher_fix = rospy.Publisher('/utm/fix', PointWithCovarianceStamped, queue_size=10)
-    utm_publisher_point = rospy.Publisher('point', PointStamped, queue_size=10)
+    rospy.Subscriber("gps_fix_topic", NavSatFix, gpsCallback)
 
-    rospy.Subscriber("/gps/fix", NavSatFix, gpsCallback)
+    utm_publisher_fix = rospy.Publisher('utm_fix_topic', PointWithCovarianceStamped, queue_size=10)
+    utm_publisher_point = rospy.Publisher('debug_point_topic', PointStamped, queue_size=10)
 
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()
