@@ -1,40 +1,56 @@
 #!/usr/bin/env python
-# license removed for brevity
 import rospy
 import utm
 
-from sensor_msgs.msg import NavSatFix, NavSatStatus
+# ROS Messages
 from geometry_msgs.msg import Point, PointStamped
 from nautonomous_pose_msgs.msg import PointWithCovarianceStamped
+from sensor_msgs.msg import NavSatFix, NavSatStatus
 
+# Publisher objects
 utm_publisher_fix = None
 utm_publisher_point = None
 
-def gpsCallback(data):
-    if data.status.status == NavSatStatus.STATUS_NO_FIX:
-        print "No fix."
-        return
+# Params
+debug_position = False
 
-    if data.header.stamp == rospy.Time(0):
-        print "Time 0"
+# Convert the GPS NavSatFix to a PointWithCovarianceStamped.
+def gps_callback(data):
+    global utm_publisher_fix, utm_publisher_point, debug_position
+
+    # Not publish the GPS message if there is no fix.
+    if data.status.status == NavSatStatus.STATUS_NO_FIX:
+        rospy.logdebug("No fix.")
         return
     
-    latitude = data.latitude
-    longitude = data.longitude
+    # And do not publish if the time is invalid.
+    if data.header.stamp == rospy.Time(0):
+        rospy.logdebug("Time 0")
+        return
+    
+    # Convert GPS coordinate to UTM coordinate.
+    utm_easting, utm_northing = utm.from_latlon(data.latitude, data.longitude)[:2]
+    utm_point = Point(utm_easting, utm_northing, 0) # z-axis is 0
 
-    utm_easting, utm_northing = utm.from_latlon(latitude, longitude)[:2]
-    point = Point(utm_easting, utm_northing, 0)
-
-    utm_publisher_fix.publish(data.header, point, data.position_covariance, data.position_covariance_type)
-    utm_publisher_point.publish(data.header, point)
+    # Publish the UTM point with covariance.
+    utm_publisher_fix.publish(data.header, utm_point, data.position_covariance, data.position_covariance_type)
+        
+    # Publish debug position for RVIZ.
+    if debug_position:
+        utm_publisher_point.publish(data.header, utm_point)
 
 if __name__ == '__main__':
-    rospy.init_node('utm_adapter_node', anonymous=True)
+    rospy.init_node('utm_adapter_node')
 
-    rospy.Subscriber("gps_fix_topic", NavSatFix, gpsCallback)
+    # Publishers
+    utm_publisher_fix = rospy.Publisher('utm', PointWithCovarianceStamped, queue_size=10)
+    utm_publisher_point = rospy.Publisher('debug', PointStamped, queue_size=10)
 
-    utm_publisher_fix = rospy.Publisher('utm_fix_topic', PointWithCovarianceStamped, queue_size=10)
-    utm_publisher_point = rospy.Publisher('debug_point_topic', PointStamped, queue_size=10)
+    # Params
+    debug_position = rospy.get_param('debug_position', False)
 
-    # spin() simply keeps python from exiting until this node is stopped
+    # Subscribers
+    rospy.Subscriber("fix", NavSatFix, gps_callback)
+
+    # Spin until the node is closed.
     rospy.spin()
