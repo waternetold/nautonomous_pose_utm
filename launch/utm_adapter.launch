@@ -4,13 +4,14 @@
 	<arg name="rosbag_prefix_url" default="/tmp"/>
 
 	<arg name="gps_fix_topic" default="gps_fix_topic"/>
+	<arg name="map_center_topic" default="map_center"/>
 
 	<arg name="utm_fix_topic" default="utm_fix_topic"/>
 	<arg name="debug_point_topic" default="debug_point_topic"/>
 
-
 	<node name="utm_adapter" pkg="nautonomous_pose_utm" type="utm_adapter.py"  output="screen" >
 		<remap from="gps_fix_topic" to="$(arg gps_fix_topic)"/>
+		<remap from="map_center_topic" to="$(arg map_center_topic)"/>
 
 		<remap from="utm_fix_topic" to="$(arg utm_fix_topic)"/>
 		<remap from="debug_point_topic" to="$(arg debug_point_topic)"/>
