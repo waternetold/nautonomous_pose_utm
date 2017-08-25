@@ -18,7 +18,8 @@ center_received = False
 # Params
 debug_position = False
 
-def centerCallback(data):
+def center_callback(data):
+    global center_received
     map_center_point.x = data.x
     map_center_point.y = data.y
     map_center_point.z = data.z
@@ -26,7 +27,7 @@ def centerCallback(data):
 
 # Convert the GPS NavSatFix to a PointWithCovarianceStamped.
 def gps_callback(data):
-    global utm_publisher_fix, utm_publisher_point, debug_position
+    global utm_publisher_fix, utm_publisher_point, debug_position, center_received
 
     # Not publish the GPS message if there is no fix.
     if data.status.status == NavSatStatus.STATUS_NO_FIX:
@@ -58,8 +59,8 @@ if __name__ == '__main__':
     utm_publisher_fix = rospy.Publisher('utm', PointWithCovarianceStamped, queue_size=10)
     utm_publisher_point = rospy.Publisher('debug', PointStamped, queue_size=10)
 
-    rospy.Subscriber("gps_fix_topic", NavSatFix, gpsCallback)
-    rospy.Subscriber('map_center_topic', Point, centerCallback)
+    rospy.Subscriber("gps_fix_topic", NavSatFix, gps_callback)
+    rospy.Subscriber('map_center_topic', Point, center_callback)
 
     # Params
     debug_position = rospy.get_param('debug_position', False)
